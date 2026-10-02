@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>¿Qué pasa si empiezas a ahorrar más tarde?</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #2c3e50;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    .personas {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin: 30px 0;
+    }
+
+    .persona {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    input {
+      padding: 5px;
+      width: 90px;
+      margin-left: 5px;
+    }
+
+    button {
+      padding: 10px 22px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #grafico {
+      max-width: 100%;
+      margin-top: 30px;
+    }
+
+    #resultadoTexto {
+      margin-top: 20px;
+      font-size: 1.1em;
+    }
+
+    .reflexion {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>⏳ ¿Qué pasa si empiezas a ahorrar más tarde?</h2>
+
+  <p>
+    En este ejercicio puedes <strong>modificar los datos del ejemplo del
+    video</strong> para ver cómo cambian los resultados.
+  </p>
+
+  <p>
+    Además, puedes descubrir <strong>cuánto debería ahorrar por mes la
+    Persona B</strong>, que empezó más tarde, para alcanzar el mismo monto
+    que la <strong>Persona A</strong>. ⚖️
+  </p>
+
+  <p>
+    ¿Cambiará mucho el resultado si dos personas ahorran durante distintos
+    períodos?<br>
+    ¿Y si una empieza más joven pero con menos dinero, y la otra más tarde
+    pero con más?
+  </p>
+
+  <p>
+    🔵 Completa los datos de cada persona y mira cómo varía el ahorro final.<br>
+    ¿Cuánto tendría que ahorrar la <strong>Persona B</strong> para alcanzar
+    el mismo monto que la <strong>Persona A</strong>?
+  </p>
+
+  <p class="reflexion">
+    💭 Reflexiona sobre cómo el tiempo y la constancia pueden influir más
+    que el monto que ahorras.
+  </p>
+
+  <div class="personas">
+
+    <div class="persona">
+      <h3>🧑 Persona A – <em>Comienza antes</em></h3>
+
+      <p>
+        <label>
+          Edad de inicio:
+          <input id="edadInicioA" type="number" value="20">
+        </label>
+      </p>
+
+      <p>
+        <label>
+          Edad final:
+          <input id="edadFinA" type="number" value="35">
+        </label>
+      </p>
+
+      <p>
+        <label>
+          Ahorro mensual ($):
+          <input id="ahorroA" type="number" value="1000">
+        </label>
+      </p>
+    </div>
+
+    <div class="persona">
+      <h3>🧔 Persona B – <em>Comienza después</em></h3>
+
+      <p>
+        <label>
+          Edad de inicio:
+          <input id="edadInicioB" type="number" value="30">
+        </label>
+      </p>
+
+      <p>
+        <label>
+          Edad final:
+          <input id="edadFinB" type="number" value="35">
+        </label>
+      </p>
+
+      <p>
+        <label>
+          Ahorro mensual ($):
+          <input id="ahorroB" type="number" value="2000">
+        </label>
+      </p>
+    </div>
+
+  </div>
+
+  <p>
+    <label>
+      Tasa de interés anual (%):
+      <input id="tasa" type="number" value="5" step="0.1">
+    </label>
+  </p>
+
+  <button type="button" onclick="calcular()">Calcular</button>
+
+  <div id="resultadoTexto"></div>
+
+  <canvas id="grafico"></canvas>
+
+  <script>
+    function calcular() {
+
+      const edadInicioA =
+        parseInt(document.getElementById("edadInicioA").value);
+
+      const edadFinA =
+        parseInt(document.getElementById("edadFinA").value);
+
+      const ahorroA =
+        parseFloat(document.getElementById("ahorroA").value);
+
+      const edadInicioB =
+        parseInt(document.getElementById("edadInicioB").value);
+
+      const edadFinB =
+        parseInt(document.getElementById("edadFinB").value);
+
+      const ahorroB =
+        parseFloat(document.getElementById("ahorroB").value);
+
+      const tasaAnual =
+        parseFloat(document.getElementById("tasa").value) / 100;
+
+      const tasaMensual =
+        Math.pow(1 + tasaAnual, 1 / 12) - 1;
+
+      const mesesA =
+        (edadFinA - edadInicioA) * 12;
+
+      const mesesB =
+        (edadFinB - edadInicioB) * 12;
+
+      if (mesesA <= 0 || mesesB <= 0 || tasaAnual <= 0) {
+        document.getElementById("resultadoTexto").innerHTML =
+          "<p style='color:red;'>Verifica los datos ingresados.</p>";
+        return;
+      }
+
+      // Monto acumulado de Persona A
+      let saldoA = 0;
+
+      for (let i = 0; i < mesesA; i++) {
+        saldoA =
+          (saldoA + ahorroA) *
+          (1 + tasaMensual);
+      }
+
+      // Monto acumulado de Persona B
+      let saldoB = 0;
+
+      for (let i = 0; i < mesesB; i++) {
+        saldoB =
+          (saldoB + ahorroB) *
+          (1 + tasaMensual);
+      }
+
+      // Ahorro mensual necesario de B para alcanzar el monto de A
+      const ahorroNecesarioB =
+        saldoA * tasaMensual /
+        (Math.pow(1 + tasaMensual, mesesB) - 1);
+
+      // Gráfico
+      const ctx =
+        document.getElementById("grafico").getContext("2d");
+
+      if (window.myChart) {
+        window.myChart.destroy();
+      }
+
+      window.myChart =
+        new Chart(ctx, {
+
+          type: "bar",
+
+          data: {
+            labels: ["Persona A", "Persona B"],
+
+            datasets: [{
+              label: "Monto acumulado ($)",
+              data: [saldoA, saldoB],
+              backgroundColor: ["#3498db", "#e67e22"]
+            }]
+          },
+
+          options: {
+            responsive: true,
+
+            plugins: {
+              title: {
+                display: true,
+                text: "Ahorro acumulado al final del período",
+                font: {
+                  size: 16
+                }
+              },
+
+              legend: {
+                display: false
+              }
+            },
+
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Monto acumulado ($)"
+                }
+              }
+            }
+          }
+        });
+
+      // Resultados
+      let texto = "";
+
+      texto +=
+        "<p>Persona A termina con <strong>$" +
+        saldoA.toFixed(2) +
+        "</strong>.</p>";
+
+      texto +=
+        "<p>Persona B termina con <strong>$" +
+        saldoB.toFixed(2) +
+        "</strong>.</p>";
+
+      texto +=
+        "<p style='margin-top:10px;'>Para igualar a Persona A, " +
+        "<strong>Persona B debería haber ahorrado $" +
+        ahorroNecesarioB.toFixed(2) +
+        "</strong> por mes desde los " +
+        edadInicioB +
+        " hasta los " +
+        edadFinB +
+        " años.</p>";
+
+      document
+        .getElementById("resultadoTexto")
+        .innerHTML = texto;
+    }
+  </script>
+
+</body>
+</html>
