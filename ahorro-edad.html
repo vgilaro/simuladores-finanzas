@@ -1,1 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <title>Simulador de ahorro</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #2c3e50;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    .escenarios {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .escenario {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    input {
+      padding: 5px;
+      width: 90px;
+      margin-left: 5px;
+    }
+
+    button {
+      padding: 10px 22px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #grafico {
+      max-width: 100%;
+      margin-top: 30px;
+    }
+
+    #resultado {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Simulador de ahorro</h2>
+
+  <p>
+    Este ejercicio te invita a <strong>explorar y experimentar</strong>
+    con los datos del video. Completa la información para comparar
+    <strong>dos escenarios de ahorro</strong>.
+  </p>
+
+  <p>
+    Prueba cambiar la <strong>edad de inicio y final</strong> de cada caso
+    y luego haz clic en <strong>Comparar</strong> para observar la diferencia.
+  </p>
+
+  <div class="escenarios">
+
+    <div class="escenario">
+      <h3>🔵 Escenario 1</h3>
+
+      <p>
+        <label>
+          Edad de inicio:
+          <input id="edadInicio1" type="number" value="14">
+        </label>
+      </p>
+
+      <p>
+        <label>
+          Edad de fin:
+          <input id="edadFin1" type="number" value="30">
+        </label>
+      </p>
+    </div>
+
+    <div class="escenario">
+      <h3>🟠 Escenario 2</h3>
+
+      <p>
+        <label>
+          Edad de inicio:
+          <input id="edadInicio2" type="number" value="18">
+        </label>
+      </p>
+
+      <p>
+        <label>
+          Edad de fin:
+          <input id="edadFin2" type="number" value="30">
+        </label>
+      </p>
+    </div>
+
+  </div>
+
+  <p>
+    <label>
+      Ahorro mensual ($):
+      <input id="ahorro" type="number" value="1000">
+    </label>
+  </p>
+
+  <p>
+    <label>
+      Tasa de interés anual (%):
+      <input id="tasa" type="number" value="5" step="0.1">
+    </label>
+  </p>
+
+  <button type="button" onclick="simular()">Comparar</button>
+
+  <div id="resultado"></div>
+
+  <canvas id="grafico"></canvas>
+
+  <script>
+    function simular() {
+
+      var ahorroMensual =
+        parseFloat(document.getElementById("ahorro").value);
+
+      var tasaAnual =
+        parseFloat(document.getElementById("tasa").value) / 100;
+
+      var escenarios = [
+        {
+          nombre:
+            "Inicio a los " +
+            document.getElementById("edadInicio1").value,
+
+          edadInicio:
+            parseInt(document.getElementById("edadInicio1").value),
+
+          edadFin:
+            parseInt(document.getElementById("edadFin1").value),
+
+          color: "#3498db"
+        },
+
+        {
+          nombre:
+            "Inicio a los " +
+            document.getElementById("edadInicio2").value,
+
+          edadInicio:
+            parseInt(document.getElementById("edadInicio2").value),
+
+          edadFin:
+            parseInt(document.getElementById("edadFin2").value),
+
+          color: "#e67e22"
+        }
+      ];
+
+      var labels = [];
+      var data = [];
+      var colores = [];
+      var resultados = "";
+
+      escenarios.forEach(function(escenario) {
+
+        var años =
+          escenario.edadFin - escenario.edadInicio;
+
+        var meses = años * 12;
+
+        var tasaMensual =
+          Math.pow(1 + tasaAnual, 1 / 12) - 1;
+
+        var saldo = 0;
+
+        for (var i = 0; i < meses; i++) {
+          saldo =
+            (saldo + ahorroMensual) *
+            (1 + tasaMensual);
+        }
+
+        labels.push(escenario.nombre);
+        data.push(saldo.toFixed(2));
+        colores.push(escenario.color);
+
+        resultados +=
+          escenario.nombre +
+          ": $" +
+          saldo.toFixed(2) +
+          "<br>";
+      });
+
+      var ctx =
+        document.getElementById("grafico")
+        .getContext("2d");
+
+      if (window.myChart) {
+        window.myChart.destroy();
+      }
+
+      window.myChart =
+        new Chart(ctx, {
+
+          type: "bar",
+
+          data: {
+            labels: labels,
+
+            datasets: [{
+              label:
+                "Monto acumulado final ($)",
+
+              data: data,
+
+              backgroundColor: colores
+            }]
+          },
+
+          options: {
+
+            responsive: true,
+
+            plugins: {
+
+              title: {
+                display: true,
+                text:
+                  "Resultado final según edad de inicio",
+
+                font: {
+                  size: 16
+                }
+              },
+
+              legend: {
+                display: false
+              }
+            },
+
+            scales: {
+
+              y: {
+                title: {
+                  display: true,
+                  text:
+                    "Monto acumulado ($)"
+                }
+              }
+            }
+          }
+        });
+
+      document
+        .getElementById("resultado")
+        .innerHTML = resultados;
+    }
+  </script>
+
+</body>
+</html>
