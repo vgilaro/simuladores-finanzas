@@ -1,131 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Simulador de ahorro a largo plazo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:24px;font-family:Arial,Helvetica,sans-serif;background:#f5f6f7;color:#24313a}
+.contenedor{max-width:1050px;margin:auto;background:#fff;border-radius:14px;padding:28px;box-shadow:0 4px 18px rgba(0,0,0,.08)}
+h1{margin:0 0 8px;font-size:30px}.intro{margin:0 0 26px;color:#5d6870;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.campo{display:flex;flex-direction:column;gap:6px}
+label{font-weight:600;font-size:14px}input{width:100%;padding:11px 12px;border:1px solid #cbd2d7;border-radius:8px;font-size:16px}
+.ayuda{color:#737d84;font-size:12px;line-height:1.35}.acciones{margin-top:22px}
+button{border:0;border-radius:8px;padding:12px 22px;font-size:16px;font-weight:700;cursor:pointer;background:#284f5d;color:#fff}
+.error{display:none;margin-top:16px;padding:12px 14px;border-radius:8px;background:#fff2f2;border:1px solid #e1b9b9;color:#8a2929}
+.resultados{margin-top:30px;padding-top:24px;border-top:1px solid #e1e5e8}
+.resultado-principal{padding:20px;border-radius:12px;background:#eef3f4;margin-bottom:16px}.etiqueta{color:#5f6b72;font-size:14px;margin-bottom:5px}
+.resultado-principal .valor{font-size:34px;font-weight:700}.tarjetas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tarjeta{border:1px solid #e0e4e7;border-radius:10px;padding:15px;min-height:105px}.tarjeta .valor{font-size:20px;font-weight:700}
+.comparacion{margin-top:24px}.comparacion h2,.supuestos h2{font-size:18px;margin:0 0 14px}
+.barra{height:26px;width:100%;display:flex;overflow:hidden;border-radius:7px;background:#e9edef}
+.bar-aportado{background:#8fa9b3}.bar-rend{background:#d2b36f}.leyenda{display:flex;gap:24px;flex-wrap:wrap;margin-top:10px;font-size:14px}
+.item-leyenda{display:flex;align-items:center;gap:7px}.muestra{width:14px;height:14px;border-radius:3px}.muestra-aporte{background:#8fa9b3}.muestra-rend{background:#d2b36f}
+.mensaje{margin-top:18px;padding:14px 16px;background:#faf8f1;border-left:4px solid #d2b36f;line-height:1.5}
+.supuestos{margin-top:28px;padding-top:20px;border-top:1px solid #e1e5e8;color:#5f686e;font-size:13px;line-height:1.55}
+@media(max-width:800px){body{padding:12px}.contenedor{padding:20px}.grid{grid-template-columns:1fr}.tarjetas{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.tarjetas{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main class="contenedor">
+<h1>Simulador de ahorro a largo plazo</h1>
+<p class="intro">Explora cuánto puede crecer un ahorro cuando realizas aportes durante algunos años y luego dejas que el capital continúe generando rendimientos hasta una edad objetivo. Modifica los supuestos y presiona <strong>Calcular</strong> para comparar escenarios.</p>
+<section class="grid">
+<div class="campo"><label for="edadActual">Edad actual</label><input id="edadActual" type="number" min="0" step="1" value="21"></div>
+<div class="campo"><label for="edadAhorro">Edad hasta la que realizarás aportes</label><input id="edadAhorro" type="number" min="1" step="1" value="25"></div>
+<div class="campo"><label for="edadObjetivo">Edad objetivo</label><input id="edadObjetivo" type="number" min="1" step="1" value="40"></div>
+<div class="campo"><label for="ahorroMensual">Ahorro mensual constante (€)</label><input id="ahorroMensual" type="number" min="0" step="100" value="3000"></div>
+<div class="campo"><label for="ahorroExtra">Ahorro extraordinario por aporte (€)</label><input id="ahorroExtra" type="number" min="0" step="100" value="10000"></div>
+<div class="campo"><label for="cantidadExtra">Cantidad total de aportes extraordinarios</label><input id="cantidadExtra" type="number" min="0" step="1" value="4"><div class="ayuda">Indica cuántos aportes extraordinarios realizarás durante todo el período de ahorro.</div></div>
+<div class="campo"><label for="tasa">Tasa de rendimiento mensual (%)</label><input id="tasa" type="number" min="0" step="0.01" value="0.20"><div class="ayuda">Introduce directamente una tasa efectiva mensual. Por ejemplo, 0,20 equivale a 0,20% mensual.</div></div>
+</section>
+<div class="acciones"><button id="calcular" type="button">Calcular</button></div><div id="error" class="error"></div>
+<section class="resultados">
+<div class="resultado-principal"><div id="lblFinal" class="etiqueta">Capital acumulado</div><div id="capitalFinal" class="valor">—</div></div>
+<div class="tarjetas">
+<div class="tarjeta"><div class="etiqueta">Total aportado</div><div id="totalAportado" class="valor">—</div></div>
+<div class="tarjeta"><div class="etiqueta">Rendimientos acumulados</div><div id="rendimientos" class="valor">—</div></div>
+<div class="tarjeta"><div id="lblFinAhorro" class="etiqueta">Capital al dejar de aportar</div><div id="capitalFinAhorro" class="valor">—</div></div>
+<div class="tarjeta"><div class="etiqueta">Tiempo sin nuevos aportes</div><div id="anosSinAporte" class="valor">—</div></div>
+</div>
+<div class="comparacion"><h2>¿De dónde proviene el capital final?</h2><div class="barra"><div id="barAportado" class="bar-aportado"></div><div id="barRend" class="bar-rend"></div></div>
+<div class="leyenda"><div class="item-leyenda"><span class="muestra muestra-aporte"></span><span>Aportes propios: <strong id="pctAportado">—</strong></span></div><div class="item-leyenda"><span class="muestra muestra-rend"></span><span>Rendimientos: <strong id="pctRend">—</strong></span></div></div></div>
+<div id="mensaje" class="mensaje">—</div></section>
+<section class="supuestos"><h2>Supuestos del simulador</h2><ul>
+<li>Los aportes mensuales se realizan al final de cada mes.</li><li>El primer aporte extraordinario se realiza al final del primer año de ahorro; los siguientes, al final de los años sucesivos.</li>
+<li>La cantidad total de aportes extraordinarios debe caber dentro del período de ahorro.</li><li>Al finalizar el período de aportes no se realizan nuevos depósitos, pero el capital continúa generando rendimientos hasta la edad objetivo.</li>
+<li>La tasa ingresada es una tasa efectiva mensual y se mantiene constante durante toda la simulación.</li><li>No se consideran impuestos, comisiones ni inflación.</li><li>El resultado es una simulación basada en los supuestos elegidos, no una predicción ni una recomendación de inversión.</li>
+</ul></section></main>
 <script>
 (function(){
- const $=id=>document.getElementById(id);
- const euro=new Intl.NumberFormat('es-ES',{
-   style:'currency',
-   currency:'EUR',
-   maximumFractionDigits:0
- });
-
- function num(id){
-   return Number($(id).value)
- }
-
- function calc(){
-
-  const ea=num('edadActual'),
-        es=num('edadAhorro'),
-        eo=num('edadObjetivo'),
-        am=num('ahorroMensual'),
-        ae=num('ahorroExtra'),
-        ce=num('cantidadExtra'),
-        r=num('tasa')/100;
-
-  const err=$('error');
-  err.style.display='none';
-  err.textContent='';
-
-  if(
-    ![ea,es,eo,am,ae,ce,r].every(Number.isFinite) ||
-    ea<0 ||
-    es<=ea ||
-    eo<es ||
-    am<0 ||
-    ae<0 ||
-    ce<0 ||
-    !Number.isInteger(ce) ||
-    r<0
-  ){
-    err.textContent='Revisa los datos: la edad de fin de ahorro debe ser mayor que la edad actual, la edad objetivo no puede ser menor y la cantidad de aportes extraordinarios debe ser un número entero no negativo.';
-    err.style.display='block';
-    return;
-  }
-
-  const mesesAhorro=Math.round((es-ea)*12),
-        mesesTotal=Math.round((eo-ea)*12),
-        maxExtra=Math.floor(mesesAhorro/12);
-
-  if(ce>maxExtra){
-    err.textContent='Con este período de ahorro pueden realizarse como máximo '+maxExtra+' aportes extraordinarios, suponiendo uno al final de cada año.';
-    err.style.display='block';
-    return;
-  }
-
-  let saldo=0,
-      total=0,
-      finAhorro=0,
-      extrasHechos=0;
-
-  for(let m=1;m<=mesesTotal;m++){
-
-    saldo*=1+r;
-
-    if(m<=mesesAhorro){
-
-      saldo+=am;
-      total+=am;
-
-      if(m%12===0 && extrasHechos<ce){
-        saldo+=ae;
-        total+=ae;
-        extrasHechos++;
-      }
-    }
-
-    if(m===mesesAhorro){
-      finAhorro=saldo;
-    }
-  }
-
-  const rend=saldo-total,
-        pA=saldo>0 ? total/saldo*100 : 0,
-        pR=saldo>0 ? rend/saldo*100 : 0;
-
-  $('capitalFinal').textContent=euro.format(saldo);
-  $('totalAportado').textContent=euro.format(total);
-  $('rendimientos').textContent=euro.format(rend);
-  $('capitalFinAhorro').textContent=euro.format(finAhorro);
-  $('anosSinAporte').textContent=(eo-es)+' años';
-
-  $('lblFinal').textContent=
-    'Capital acumulado a los '+eo+' años';
-
-  $('lblFinAhorro').textContent=
-    'Capital al dejar de ahorrar a los '+es+' años';
-
-  $('barAportado').style.width=
-    Math.max(0,Math.min(100,pA))+'%';
-
-  $('barRend').style.width=
-    Math.max(0,Math.min(100,pR))+'%';
-
-  $('pctAportado').textContent=
-    pA.toFixed(1).replace('.',',')+'%';
-
-  $('pctRend').textContent=
-    pR.toFixed(1).replace('.',',')+'%';
-
-  const anosCapital=eo-es;
-
-  $('mensaje').textContent=
-    anosCapital>0
-    ? 'Durante el período de ahorro realizas '
-      +mesesAhorro+
-      ' aportes mensuales y '
-      +ce+
-      ' aporte'+(ce===1?'':'s')+
-      ' extraordinario'+(ce===1?'':'s')+
-      '. Después de dejar de aportar, el capital permanece '
-      +anosCapital+
-      ' años generando rendimientos.'
-    : 'En este escenario realizas aportes hasta la edad objetivo.';
- }
-
- // El cálculo se actualiza únicamente al presionar el botón.
- $('calcular').addEventListener('click',calc);
-
- // Muestra el escenario inicial al abrir el simulador.
- calc();
-
+const $=id=>document.getElementById(id);
+const euro=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+const num=id=>Number($(id).value);
+function calc(){
+const ea=num('edadActual'),es=num('edadAhorro'),eo=num('edadObjetivo'),am=num('ahorroMensual'),ae=num('ahorroExtra'),ce=num('cantidadExtra'),r=num('tasa')/100,err=$('error');
+err.style.display='none';err.textContent='';
+if(![ea,es,eo,am,ae,ce,r].every(Number.isFinite)||ea<0||es<=ea||eo<es||am<0||ae<0||ce<0||!Number.isInteger(ce)||r<0){err.textContent='Revisa los datos: la edad hasta la que realizarás aportes debe ser mayor que la edad actual, la edad objetivo no puede ser menor, y la cantidad de aportes extraordinarios debe ser un número entero no negativo.';err.style.display='block';return;}
+const ma=Math.round((es-ea)*12),mt=Math.round((eo-ea)*12),max=Math.floor(ma/12);
+if(ce>max){err.textContent='Con este período de ahorro pueden realizarse como máximo '+max+' aportes extraordinarios, suponiendo uno al final de cada año.';err.style.display='block';return;}
+let saldo=0,total=0,fin=0,extras=0;
+for(let m=1;m<=mt;m++){saldo*=1+r;if(m<=ma){saldo+=am;total+=am;if(m%12===0&&extras<ce){saldo+=ae;total+=ae;extras++;}}if(m===ma)fin=saldo;}
+const rend=saldo-total,pA=saldo>0?total/saldo*100:0,pR=saldo>0?rend/saldo*100:0,anos=eo-es;
+$('capitalFinal').textContent=euro.format(saldo);$('totalAportado').textContent=euro.format(total);$('rendimientos').textContent=euro.format(rend);$('capitalFinAhorro').textContent=euro.format(fin);$('anosSinAporte').textContent=anos+(anos===1?' año':' años');
+$('lblFinal').textContent='Capital acumulado a los '+eo+' años';$('lblFinAhorro').textContent='Capital al dejar de aportar a los '+es+' años';
+$('barAportado').style.width=Math.max(0,Math.min(100,pA))+'%';$('barRend').style.width=Math.max(0,Math.min(100,pR))+'%';
+$('pctAportado').textContent=pA.toFixed(1).replace('.',',')+'%';$('pctRend').textContent=pR.toFixed(1).replace('.',',')+'%';
+$('mensaje').textContent=anos>0?'Durante el período de ahorro realizas '+ma+' aportes mensuales y '+ce+(ce===1?' aporte extraordinario. ':' aportes extraordinarios. ')+'Después de dejar de aportar, el capital permanece '+anos+(anos===1?' año':' años')+' generando rendimientos.':'En este escenario realizas aportes hasta la edad objetivo.';
+}
+$('calcular').addEventListener('click',calc);
+calc();
 })();
-</script>
+</script></body></html>
