@@ -1,0 +1,110 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Comprar o invertir — Calculadora financiera</title><style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mut:#5d6b7c;--line:#dde2e8;--acc:#1f5fbf;--acc2:#e08a00;--ok:#1a8a4a;--bad:#c0392b;--soft:#eaf1fb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 2px}
+.sub{color:var(--mut);margin:0 0 12px;font-size:14px}
+
+.tabs button{border:1px solid var(--line);background:var(--card);padding:9px 14px;border-radius:8px;cursor:pointer;font:inherit;color:var(--ink)}
+.tabs button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.card h2{font-size:16px;margin:0 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.option-card{background:#f8fafc;border:1px solid var(--line);border-radius:9px;padding:14px}
+.option-card h3{margin:0 0 12px;font-size:16px}
+.option-card label+label{margin-top:12px}
+@media(max-width:620px){.option-grid{grid-template-columns:1fr}}
+label{display:block;font-size:13px;color:var(--mut)}
+label span.h{display:block;font-size:12px;color:#8793a3}
+input,select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:6px;font:inherit;margin-top:2px;background:#fff;color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.kpi{background:var(--soft);border-radius:8px;padding:10px}
+.kpi b{display:block;font-size:20px}
+.kpi small{color:var(--mut)}
+.kpi.bad b{color:var(--bad)} .kpi.ok b{color:var(--ok)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{background:#f0f3f7;font-weight:600}
+tr.separator td{border-top:3px solid #b9c5d2}
+tr.total td{border-top:2px solid #71839a;background:#eaf1fb;font-weight:700}
+.note{font-size:13px;color:var(--mut);margin:6px 0 0}
+.msg{padding:9px 11px;border-radius:8px;margin-top:8px;font-size:14px;background:#fff6e5;border:1px solid #f0d9a8}
+.msg.good{background:#e8f6ee;border-color:#b6dfc6}.msg.warn{background:#fdecea;border-color:#f1b9b3}
+svg{width:100%;height:auto;display:block}
+.leg{font-size:12px;color:var(--mut);display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+
+details summary{cursor:pointer;color:var(--acc)}
+</style></head><body><main class="wrap"><h1>¿Comprar o invertir?</h1><p class="sub">Compará el costo económico de dos automóviles y explorá cuánto influye invertir el dinero en lugar de gastarlo.</p><div class="card"><h2>¿Qué estamos comparando?</h2><p class="note">Se comparan dos automóviles. Ambos prestan un servicio similar, pero tienen distinto precio y pueden tener distintos gastos. ¿Cuánto patrimonio sacrifica al elegir cada uno en lugar de invertir ese dinero?</p></div>
+<div class="card"><h2>Datos de partida</h2>
+<div class="option-grid">
+<section class="option-card"><h3>Opción A</h3>
+<label>Precio de compra (€)<input id="pa" type="number" value="80000" min="0" step="1000"></label>
+<label>Gastos anuales (€)<span class="h">Seguro, patente, mantenimiento y otros</span><input id="cka" type="number" value="6000" min="0" step="500"></label>
+</section>
+<section class="option-card"><h3>Opción B</h3>
+<label>Precio de compra (€)<input id="pb" type="number" value="35000" min="0" step="1000"></label>
+<label>Gastos anuales (€)<span class="h">Seguro, patente, mantenimiento y otros</span><input id="ckb" type="number" value="3500" min="0" step="500"></label>
+</section></div>
+<h2 style="margin-top:18px">Supuestos comunes a ambas opciones</h2><div class="grid">
+<label>¿Durante cuántos años conservarías el automóvil?<span class="h">Se supone el mismo plazo para ambas opciones</span><input id="nn" type="number" value="5" min="1" max="30" step="1"></label>
+<label>Depreciación anual de ambos automóviles (%)<span class="h">Pérdida porcentual sobre el valor del año anterior</span><input id="dp" type="number" value="15" min="0" max="100" step="1"></label>
+<label>Rentabilidad anual de la inversión alternativa (%)<span class="h">Supuesto, no rendimiento garantizado</span><input id="r2" type="number" value="8" min="-99" step="0.5"></label>
+</div><p class="note">Para facilitar el cálculo se utilizan supuestos simplificadores: compra al contado, misma duración para ambos automóviles, pérdida de valor a tasa constante, gastos al final de cada año y rentabilidad anual constante. No se consideran inflación, impuestos, financiación ni diferencias en la utilidad de los automóviles.</p></div>
+<div class="card"><h2>Resultados al final del plazo</h2><div id="r2out"></div><div id="m3"></div></div>
+<div class="card"><h2>¿De dónde sale el costo económico?</h2><div id="c3"></div><div class="leg"><span><i style="background:#c0392b"></i>Pérdida de valor del automóvil</span><span><i style="background:#e08a00"></i>Gastos de mantenimiento durante el período</span><span><i style="background:#1f5fbf"></i>Rendimientos que se dejan de obtener</span></div><p class="note">El gráfico descompone el costo económico total. Los rendimientos que se dejan de obtener incluyen los del precio de compra y los de los gastos anuales. Si la rentabilidad alternativa es negativa, ese componente puede ser negativo y no se representa en la barra.</p></div>
+<div class="card"><details><summary>Ver las fórmulas y cómo se calcula</summary><div id="f2"></div></details></div>
+<p class="note">Cálculos educativos en euros nominales. La rentabilidad es hipotética y no está garantizada.</p></main><script>const $=id=>document.getElementById(id);
+const num=id=>{const v=parseFloat($(id).value);return isFinite(v)?v:NaN};
+const fmt=n=>{const s=Math.abs(Math.round(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');return (n<-0.5?'−':'')+s+' €'};
+const pct=(x,d=1)=>(x*100).toFixed(d).replace('.',',')+'%';
+function msg(el,cls,t){$(el).innerHTML=t?`<div class="msg ${cls}">${t}</div>`:''}
+function calc2(){
+  const pa=num('pa'),pb=num('pb'),dp=num('dp')/100,Ka=num('cka'),Kb=num('ckb'),n=num('nn'),r=num('r2')/100;
+  const vals=[pa,pb,dp,Ka,Kb,n,r];
+  if(vals.some(v=>!Number.isFinite(v)) || pa<0 || pb<0 || Ka<0 || Kb<0 || dp<0 || dp>1 || !Number.isInteger(n) || n<1 || n>30 || r<=-1){
+    $('r2out').innerHTML='<div class="msg warn">Revisá los datos: importes no negativos, depreciación entre 0% y 100%, plazo entero de 1 a 30 años y rentabilidad mayor que −100%.</div>';
+    $('m3').innerHTML='';$('c3').innerHTML='';$('f2').innerHTML='';return;
+  }
+  const one=(P,K)=>{
+    const V=P*Math.pow(1-dp,n), capital=P*Math.pow(1+r,n);
+    let gastosFV=0;for(let t=1;t<=n;t++) gastosFV+=K*Math.pow(1+r,n-t);
+    const dep=P-V, gastos=K*n, rendimiento=(capital-P)+(gastosFV-gastos);
+    const costo=dep+gastos+rendimiento;
+    return {P,K,V,capital,gastosFV,dep,gastos,rendimiento,costo};
+  };
+  const A=one(pa,Ka),B=one(pb,Kb);
+  const rows=[
+    ['Valor estimado de reventa',x=>x.V,'reventa'],
+    ['Pérdida de valor del automóvil',x=>x.dep,'separator'],
+    ['Gastos de mantenimiento durante el período',x=>x.gastos,''],
+    ['Rendimientos que se dejan de obtener',x=>x.rendimiento,''],
+    ['Costo económico total',x=>x.costo,'total']
+  ];
+  let h='<table><tr><th>Concepto</th><th>Opción A</th><th>Opción B</th></tr>';
+  rows.forEach(([label,fn,cls])=>{
+    h+=`<tr class="${cls}"><td>${label}</td><td>${fmt(fn(A))}</td><td>${fmt(fn(B))}</td></tr>`;
+  });
+  $('r2out').innerHTML=h+'</table>';
+  const delta=A.costo-B.costo, preferred=delta>0?'B':delta<0?'A':'ninguna: tienen el mismo costo';
+  msg('m3',delta===0?'good':'',`Con estos supuestos, ${delta===0?'ambas opciones tienen el mismo costo económico':`la opción ${preferred} tiene un costo económico menor en <b>${fmt(Math.abs(delta))}</b>`} al final de los ${n} años. Esta diferencia representa patrimonio potencial, no un pago que debas realizar. La comparación no mide comodidad, seguridad ni utilidad personal.`);
+  const mx=Math.max(A.costo,B.costo,1),W=900,H=190,L=120;
+  let g='';
+  [[A,'Opción A'],[B,'Opción B']].forEach(([o,label],i)=>{
+    const y0=20+i*80;let x=L;const sc=(W-L-125)/mx;
+    g+=`<text x="${L-8}" y="${y0+24}" font-size="13" text-anchor="end" fill="#1c2430">${label}</text>`;
+    [[o.dep,'#c0392b'],[o.gastos,'#e08a00'],[o.rendimiento,'#1f5fbf']].forEach(([v,color])=>{const width=Math.max(0,v)*sc;g+=`<rect x="${x}" y="${y0}" width="${width}" height="34" fill="${color}"/>`;x+=width;});
+    g+=`<text x="${Math.min(x+6,W-5)}" y="${y0+22}" font-size="13" fill="#1c2430">${fmt(o.costo)}</text>`;
+  });
+  $('c3').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Comparación de pérdida de valor, gastos de mantenimiento y rendimientos que se dejan de obtener">${g}</svg>`;
+  const formula=(o,name)=>`<p><b>${name}:</b> valor de reventa = ${fmt(o.P)} × (1 − ${pct(dp,0)})<sup>${n}</sup> = <b>${fmt(o.V)}</b>.<br>
+    Capital alternativo al final = ${fmt(o.P)} × (1 + ${pct(r)})<sup>${n}</sup> = <b>${fmt(o.capital)}</b>.<br>
+    Gastos acumulados con intereses = ${fmt(o.K)} × [(1 + i)<sup>${n-1}</sup> + … + 1] = <b>${fmt(o.gastosFV)}</b>.<br>
+    Costo económico = capital alternativo + gastos acumulados con intereses − reventa = <b>${fmt(o.costo)}</b>.</p>`;
+  $('f2').innerHTML=`<p class="note">Se supone que los gastos se pagan al final de cada año. Si se evitara la compra, el precio y cada gasto anual podrían invertirse hasta el final del plazo.</p>${formula(A,'Opción A')}${formula(B,'Opción B')}<p class="note">También puede verificarse: costo económico total = pérdida de valor del automóvil + gastos de mantenimiento durante el período + rendimientos que se dejan de obtener. Si la rentabilidad supuesta es negativa, el último componente puede ser negativo.</p>`;
+}
+
+document.querySelectorAll('input').forEach(x=>x.addEventListener('input',calc2));calc2();</script></body></html>
