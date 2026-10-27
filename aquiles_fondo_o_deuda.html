@@ -1,0 +1,304 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>¿Fondo o deuda?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: caso arriba, tres caminos en columnas comparables, detalle debajo (estado de cuenta + desglose de cuotas + fondo mes a mes) */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --ink:#1d2421; --muted:#5d6762; --line:#d9ddd8;
+  --accent:#0b6e63; --accent-soft:#e2f1ee;
+  --card:#a3431f; --card-soft:#f7e8e1;
+  --store:#7a5a00; --store-soft:#f6efd9;
+  --cash:#0b6e63; --warn:#b42318; --warn-soft:#fdecea;
+  --f-display:"Fraunces", Georgia, serif;
+  --f-body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a18; --surface:#1e2522; --ink:#e7ece9; --muted:#9aa5a0; --line:#323b37;
+  --accent:#4cc2b2; --accent-soft:#183531; --card:#ef8a62; --card-soft:#3a241b;
+  --store:#e0b84a; --store-soft:#352c14; --cash:#4cc2b2; --warn:#ff8a80; --warn-soft:#3b1e1c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a18; --surface:#1e2522; --ink:#e7ece9; --muted:#9aa5a0; --line:#323b37;
+  --accent:#4cc2b2; --accent-soft:#183531; --card:#ef8a62; --card-soft:#3a241b;
+  --store:#e0b84a; --store-soft:#352c14; --cash:#4cc2b2; --warn:#ff8a80; --warn-soft:#3b1e1c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--f-display);font-size:clamp(28px,5vw,42px);line-height:1.1;margin:4px 0 10px;text-wrap:balance}
+h2{font-family:var(--f-display);font-size:22px;margin:0 0 4px;text-wrap:balance}
+h3{font-size:17px;margin:0}
+p{margin:0;max-width:68ch}
+.lead{color:var(--muted);font-size:17px}
+.num,td.n,th.n{font-variant-numeric:tabular-nums;font-family:var(--f-mono)}
+section{display:grid;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+/* supuestos */
+details.panel summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center}
+details.panel summary::after{content:"Mostrar";font-weight:600;color:var(--accent);font-size:14px}
+details[open].panel summary::after{content:"Ocultar"}
+summary:focus-visible,input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grid-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:16px}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:10px;align-content:start}
+legend{font-weight:700;margin-bottom:6px;font-size:15px}
+label{display:grid;grid-template-columns:1fr 112px;gap:10px;align-items:center;font-size:14.5px;color:var(--muted)}
+input,select{width:100%;font:inherit;font-family:var(--f-mono);font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);text-align:right}
+select{text-align:left}
+.note{font-size:13.5px;color:var(--muted)}
+button.reset{justify-self:start;font:inherit;font-size:14px;font-weight:600;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer}
+/* tres caminos */
+.paths{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:820px){.paths{grid-template-columns:1fr}}
+.path{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px;align-content:start;border-top:4px solid var(--c)}
+.path .tag{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.big{font-family:var(--f-mono);font-size:26px;font-weight:500}
+dl{display:grid;grid-template-columns:1fr auto;gap:6px 12px;margin:0;font-size:14.5px}
+dt{color:var(--muted)} dd{margin:0;text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.pill{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--c)}
+.alert{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:8px 10px;font-size:14px;font-weight:600}
+/* tablas */
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.5px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+td.n,th.n{text-align:right}
+tr.total td{font-weight:700;border-top:2px solid var(--ink)}
+tr.grow td.debt{color:var(--warn);font-weight:600}
+.two{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px}
+@media (max-width:900px){.two{grid-template-columns:1fr}}
+.stmt-head{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--muted);margin-bottom:8px}
+.rate{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.rate div{border:1px solid var(--line);border-radius:8px;padding:10px}
+.rate b{display:block;font-family:var(--f-mono);font-size:20px;font-weight:500}
+.rate .hot b{color:var(--warn)}
+svg text{fill:var(--muted);font-family:var(--f-body);font-size:12px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:14px}
+.legend span::before{content:"";display:inline-block;width:14px;height:3px;background:var(--c);margin-right:6px;vertical-align:middle}
+footer{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:480px){label{grid-template-columns:1fr 96px}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Desafío Aquiles · Entrega 3 · Simulador</div>
+    <h1>¿Uso el fondo o me endeudo?</h1>
+    <p class="lead">Enero de 2027. La familia de Aquiles en Montevideo necesita cambiar la heladera y el lavarropas. Aquiles no vuelve a cobrar hasta julio. Este simulador muestra cuánto cuesta realmente cada forma de pagar y qué pasa con su fondo de emergencia mes a mes.</p>
+  </header>
+
+  <details class="panel" id="supuestos">
+    <summary>Supuestos del caso (podés modificarlos)</summary>
+    <div class="grid-in">
+      <fieldset>
+        <legend>La compra y el fondo</legend>
+        <label for="precio">Precio contado ($)<input id="precio" type="number" step="1000" value="80000"></label>
+        <label for="tc">Tipo de cambio ($ por €)<input id="tc" type="number" step="0.5" value="47"></label>
+        <label for="fondo">Fondo de emergencia en enero (€)<input id="fondo" type="number" step="100" value="3000"></label>
+        <label for="rend">Rendimiento anual del fondo (%)<input id="rend" type="number" step="0.5" value="3"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Tarjeta de crédito</legend>
+        <label for="tea">TEA informada (%)<input id="tea" type="number" step="0.01" value="63.56"></label>
+        <label for="iva">IVA sobre intereses (%)<input id="iva" type="number" step="1" value="22"></label>
+        <label for="seg">Seguro sobre saldo (% mensual)<input id="seg" type="number" step="0.05" value="0.25"></label>
+        <label for="porcMin">Capital incluido en el mínimo (%)<input id="porcMin" type="number" step="1" min="0" max="100" value="10"></label>
+        <label for="pisoMin">Piso del pago mínimo ($)<input id="pisoMin" type="number" step="100" min="0" value="1500"></label>
+        <label for="cancel">Cancela todo en<select id="cancel"></select></label>
+      </fieldset>
+      <fieldset>
+        <legend>Crédito de la tienda</legend>
+        <label for="cuota">Cuota fija ($)<input id="cuota" type="number" step="1" value="8688"></label>
+        <label for="ncuotas">Cantidad de cuotas<input id="ncuotas" type="number" step="1" min="1" max="36" value="12"></label>
+        <label for="teaT">TEA anunciada (%)<input id="teaT" type="number" step="0.5" value="45"></label>
+        <p class="note">La cuota incluye intereses, IVA sobre intereses, seguro de vida y gastos administrativos. La tienda informa solo la TEA sin IVA.</p>
+      </fieldset>
+    </div>
+    <p class="note" style="margin-top:14px">Supuestos docentes inspirados en un estado de cuenta real de una tarjeta uruguaya: si se financia la compra, los intereses se estiman desde el día de la compra con base 365; los intereses e impuestos se capitalizan mensualmente cuando quedan impagos. El mínimo se aproxima como intereses + IVA + seguro + 10 % del capital, con un piso configurable. Se omiten cuotas anteriores, mantenimiento y sobregiros. No es una liquidación bancaria exacta.</p>
+    <button class="reset" id="reset" type="button" style="margin-top:12px">Volver a los valores del caso</button>
+  </details>
+
+  <section aria-labelledby="h-paths">
+    <div>
+      <h2 id="h-paths">Tres maneras de pagar los <span id="precioTxt"></span></h2>
+      <p class="note">Compra el 5 de enero. Los vencimientos son el día 7 de cada mes. Lo que se paga antes de julio sale del fondo de emergencia; desde julio, del sueldo.</p>
+    </div>
+    <div class="paths" id="paths"></div>
+  </section>
+
+  <section aria-labelledby="h-stmt">
+    <div class="two">
+      <div class="panel">
+        <h2 id="h-stmt">Tarjeta: qué dice cada estado de cuenta</h2>
+        <div class="stmt-head" id="stmtHead"></div>
+        <div class="tbl"><table id="tblCard"></table></div>
+        <p class="note" style="margin-top:10px">El mínimo estimado incluye intereses, IVA, seguro y una parte del capital. En julio se muestra el pago total para cancelar el saldo.</p>
+      </div>
+      <div class="panel">
+        <h2>Tienda: qué hay dentro de las cuotas</h2>
+        <div class="tbl"><table id="tblStore" style="min-width:0"></table></div>
+        <div class="rate" id="rates"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-fondo">
+    <div>
+      <h2 id="h-fondo">El fondo de emergencia mes a mes</h2>
+      <p class="note">Saldo del fondo al final de cada mes, en euros, hasta que vuelve a cobrar.</p>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="tbl"><svg id="chart" viewBox="0 0 720 260" width="100%" role="img" aria-label="Fondo de emergencia mes a mes en las tres opciones" style="min-width:520px"></svg></div>
+    <div class="tbl"><table id="tblFondo"></table></div>
+  </section>
+
+  <footer>Diploma en Finanzas Personales · Universidad de Montevideo · Módulo III: Precauciones en el endeudamiento. Herramienta de análisis para la Entrega 3; las cifras dependen de los supuestos elegidos.</footer>
+</div>
+
+<script>
+(function(){
+const MESES=["Febrero","Marzo","Abril","Mayo","Junio","Julio"];
+const DEF={precio:80000,tc:47,fondo:3000,rend:3,tea:63.56,iva:22,seg:0.25,porcMin:10,pisoMin:1500,cancel:"5",cuota:8688,ncuotas:12,teaT:45};
+const $=id=>document.getElementById(id);
+const sel=$("cancel");
+MESES.forEach((m,i)=>{const o=document.createElement("option");o.value=i;o.textContent=m+(i===0?" (pago total)":"");sel.appendChild(o)});
+sel.value="5";
+const fmt=(x,d=0)=>Number(x).toLocaleString("es-UY",{minimumFractionDigits:d,maximumFractionDigits:d});
+const pesos=x=>"$ "+fmt(x);
+const eur=x=>fmt(x)+" €";
+const pct=x=>fmt(x*100,1)+" %";
+const v=id=>{const n=parseFloat($(id).value);return isFinite(n)?n:DEF[id]};
+
+function days(a,b){return Math.round((b-a)/864e5)}
+function irrMonthly(P,c,n){ // tasa mensual tal que P = c*(1-(1+r)^-n)/r
+  if(c*n<=P) return 0;
+  let lo=0,hi=1;for(let k=0;k<200;k++){const r=(lo+hi)/2;const pv=c*(1-Math.pow(1+r,-n))/r;(pv>P)?lo=r:hi=r}
+  return (lo+hi)/2;
+}
+
+function compute(){
+  const P=v("precio"),TC=v("tc"),F0=v("fondo"),rend=v("rend")/100,tea=v("tea")/100,iva=v("iva")/100,seg=v("seg")/100,porcMin=v("porcMin")/100,pisoMin=v("pisoMin"),cancel=parseInt(sel.value,10),cuota=v("cuota"),n=Math.max(1,Math.round(v("ncuotas"))),teaT=v("teaT")/100;
+  const compra=new Date(2027,0,5);
+  const venc=MESES.map((_,i)=>new Date(2027,i+1,7));
+
+  // Tarjeta: interés efectivo por tramo de días; liquidación y eventual capitalización mensual.
+  // Pago mínimo docente: intereses + IVA + seguro + 10% del capital, con piso.
+  // Se supone una única compra, sin consumos nuevos ni cuotas preexistentes.
+  let bal=P,last=compra,rows=[],TI=0,TV=0,TS=0,paid=0;
+  for(let i=0;i<=cancel;i++){
+    const d=days(last,venc[i]);
+    const capital=bal;
+    const it=cancel===0?0:capital*(Math.pow(1+tea,d/365)-1);
+    const iv=it*iva;
+    const seguro=cancel===0?0:capital*seg;
+    const cargos=it+iv+seguro;
+    const totalExigible=capital+cargos;
+    const minimo=cancel===0?totalExigible:Math.min(totalExigible,Math.max(pisoMin,cargos+capital*porcMin));
+    const pay=i===cancel?totalExigible:minimo;
+    const amortizacion=Math.max(0,pay-cargos);
+    bal=Math.max(0,totalExigible-pay);
+    TI+=it; TV+=iv; TS+=seguro; paid+=pay;
+    last=venc[i];
+    rows.push({mes:MESES[i],dias:d,it,iv,s:seguro,minimo,pay,amortizacion,bal,grow:bal>capital+0.5&&i!==cancel});
+  }
+  const cardPays=MESES.map((_,i)=>rows[i]?.pay||0);
+  const mOf=Math.pow(1+tea,1/12)-1;
+  const teaRealCard=Math.pow(1+mOf*(1+iva)+seg,12)-1; // indicador orientativo, no TIR del flujo de mínimos
+
+  // Tienda
+  const mT=Math.pow(1+teaT,1/12)-1;
+  const pmt=P*mT/(1-Math.pow(1+mT,-n));
+  let b=P,IT=0;for(let k=0;k<n;k++){const i=b*mT;IT+=i;b-=pmt-i}
+  const ivaT=IT*iva, totalT=cuota*n, otros=totalT-P-IT-ivaT;
+  const rT=irrMonthly(P,cuota,n), teaRealT=Math.pow(1+rT,12)-1;
+  const storePays=MESES.map((_,i)=>i<n?cuota:0);
+  const storeAfter=Math.max(0,n-5)*cuota; // desde julio (incluido)
+
+  // Fondo (ene..jun) y rendimiento perdido hasta julio
+  function fondoPath(pays){ // pays feb..jul en $
+    const path=[F0];let f=F0,lost=0;
+    for(let i=0;i<5;i++){const e=pays[i]/TC;f-=e;path.push(f);lost+=e*(Math.pow(1+rend,(5-i)/12)-1)}
+    return {path,lost,fromSalary:pays[5]};
+  }
+  const cashPays=[P,0,0,0,0,0];
+  const C=fondoPath(cashPays),T=fondoPath(cardPays),S=fondoPath(storePays);
+  const opts=[
+    {k:"cash",tag:"Pagar con el fondo",title:"Tarjeta, pagando el total en febrero",total:P,extra:0,parts:[],F:C,c:"var(--cash)",soft:"var(--accent-soft)",after:0,afterTxt:"Nada"},
+    {k:"card",tag:"Tarjeta: pagos mínimos",title:cancel===0?"Paga el total en febrero":"Paga el mínimo calculado y cancela en "+MESES[cancel].toLowerCase(),total:paid,extra:TI+TV+TS,parts:[["Intereses",TI],["IVA",TV],["Seguro s/saldo",TS]],F:T,c:"var(--card)",soft:"var(--card-soft)",after:cancel===5?rows[5].pay:0,afterTxt:cancel===5?pesos(rows[5].pay)+" en julio":"Nada"},
+    {k:"store",tag:"Crédito de la tienda",title:n+" cuotas de "+pesos(cuota),total:totalT,extra:totalT-P,parts:[["Intereses",IT],["IVA",ivaT],["Seguro y gastos",otros]],F:S,c:"var(--store)",soft:"var(--store-soft)",after:storeAfter,afterTxt:storeAfter>0?Math.max(0,n-5)+" cuotas, "+pesos(storeAfter):"Nada"}
+  ];
+  return {P,TC,F0,rows,TI,TV,TS,paid,tea,teaRealCard,teaT,teaRealT,IT,ivaT,otros,totalT,opts,cancel,cuota,n};
+}
+
+function render(){
+  const R=compute();
+  $("precioTxt").textContent=pesos(R.P);
+  // tarjetas de opciones
+  $("paths").innerHTML=R.opts.map(o=>{
+    const minF=Math.min(...o.F.path);
+    const parts=o.parts.map(([a,x])=>`<dt>&nbsp;&nbsp;${a}</dt><dd>${pesos(x)}</dd>`).join("");
+    return `<article class="path" style="--c:${o.c};--soft:${o.soft}">
+      <div><div class="tag">${o.tag}</div><h3>${o.title}</h3></div>
+      <div><div class="note">Total pagado</div><div class="big">${pesos(o.total)}</div></div>
+      <dl>
+        <dt>Costo extra sobre el contado</dt><dd>${pesos(o.extra)}</dd>${parts}
+        <dt>Costo extra en euros</dt><dd>${eur(o.extra/R.TC)}</dd>
+        <dt>Rendimiento que deja de ganar el fondo</dt><dd>${eur(o.F.lost)}</dd>
+        <dt><b>Fondo disponible en junio</b></dt><dd><b>${eur(o.F.path[5])}</b></dd>
+        <dt>Pendiente al volver a cobrar</dt><dd>${o.afterTxt}</dd>
+      </dl>
+      ${minF<0?'<div class="alert">El fondo no alcanza: queda en negativo antes de julio.</div>':''}
+    </article>`}).join("");
+
+  // estado de cuenta
+  $("stmtHead").innerHTML=`<span>TEA informada <b class="num">${pct(R.tea)}</b></span><span>Pago mensual <b class="num">${R.cancel===0?"total":"mínimo variable (según saldo)"}</b></span>`;
+  let h=`<thead><tr><th>Vencimiento</th><th class="n">Días de interés</th><th class="n">Intereses</th><th class="n">IVA</th><th class="n">Seguro</th><th class="n">Mínimo calculado</th><th class="n">Paga</th><th class="n">Reduce capital</th><th class="n">Sigue debiendo</th></tr></thead><tbody>`;
+  h+=`<tr><td>Compra (5 ene)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="n debt">${pesos(R.P)}</td></tr>`;
+  R.rows.forEach(r=>{h+=`<tr class="${r.grow?'grow':''}"><td>${r.mes}</td><td class="n">${r.it?r.dias:"–"}</td><td class="n">${pesos(r.it)}</td><td class="n">${pesos(r.iv)}</td><td class="n">${pesos(r.s)}</td><td class="n">${pesos(r.minimo)}</td><td class="n">${pesos(r.pay)}</td><td class="n">${pesos(r.amortizacion)}</td><td class="n debt">${pesos(r.bal)}</td></tr>`});
+  h+=`<tr class="total"><td>Total</td><td></td><td class="n">${pesos(R.TI)}</td><td class="n">${pesos(R.TV)}</td><td class="n">${pesos(R.TS)}</td><td></td><td class="n">${pesos(R.paid)}</td><td></td><td></td></tr></tbody>`;
+  $("tblCard").innerHTML=h;
+
+  // tienda
+  $("tblStore").innerHTML=`<tbody>
+    <tr><td>Electrodomésticos (precio contado)</td><td class="n">${pesos(R.P)}</td></tr>
+    <tr><td>Intereses a la TEA anunciada</td><td class="n">${pesos(R.IT)}</td></tr>
+    <tr><td>IVA sobre intereses</td><td class="n">${pesos(R.ivaT)}</td></tr>
+    <tr><td>Seguro de vida y gastos administrativos</td><td class="n">${pesos(R.otros)}</td></tr>
+    <tr class="total"><td>Total pagado (${R.n} × ${pesos(R.cuota)})</td><td class="n">${pesos(R.totalT)}</td></tr></tbody>`;
+  $("rates").innerHTML=`
+    <div><span class="note">Tarjeta · TEA informada</span><b>${pct(R.tea)}</b></div>
+    <div class="hot"><span class="note">Tarjeta · tasa orientativa con cargos</span><b>${pct(R.teaRealCard)}</b></div>
+    <div><span class="note">Tienda · TEA anunciada</span><b>${pct(R.teaT)}</b></div>
+    <div class="hot"><span class="note">Tienda · implícita en la cuota</span><b>${pct(R.teaRealT)}</b></div>`;
+
+  // fondo: tabla y gráfico
+  const lab=["Enero","Febrero","Marzo","Abril","Mayo","Junio"];
+  let t=`<thead><tr><th>Opción</th>${lab.map(l=>`<th class="n">${l}</th>`).join("")}</tr></thead><tbody>`;
+  R.opts.forEach(o=>{t+=`<tr><td>${o.tag}</td>${o.F.path.map(x=>`<td class="n" style="${x<0?'color:var(--warn);font-weight:700':''}">${eur(x)}</td>`).join("")}</tr>`});
+  $("tblFondo").innerHTML=t+"</tbody>";
+  $("legend").innerHTML=R.opts.map(o=>`<span style="--c:${o.c}">${o.tag}</span>`).join("");
+
+  const W=720,H=260,L=64,Rr=16,Tp=16,B=34;
+  const all=R.opts.flatMap(o=>o.F.path);
+  let lo=Math.min(0,...all),hi=Math.max(...all);
+  const step=Math.pow(10,Math.floor(Math.log10(Math.max(1,hi-lo))));const st=(hi-lo)/step>5?step:step/2;
+  lo=Math.floor(lo/st)*st;hi=Math.ceil(hi/st)*st;if(hi===lo)hi=lo+st;
+  const x=i=>L+i*(W-L-Rr)/5, y=val=>Tp+(hi-val)*(H-Tp-B)/(hi-lo);
+  let s="";
+  for(let g=lo;g<=hi+1e-9;g+=st){s+=`<line x1="${L}" x2="${W-Rr}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)" stroke-width="${g===0?1.5:1}"/><text x="${L-8}" y="${y(g)+4}" text-anchor="end">${fmt(g)} €</text>`}
+  lab.forEach((l,i)=>{s+=`<text x="${x(i)}" y="${H-10}" text-anchor="middle">${l.slice(0,3)}</text>`});
+  R.opts.forEach(o=>{
+    const pts=o.F.path.map((p,i)=>`${x(i)},${y(p)}`).join(" ");
+    s+=`<polyline points="${pts}" fill="none" stroke="${o.c}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    o.F.path.forEach((p,i)=>{s+=`<circle cx="${x(i)}" cy="${y(p)}" r="${i===5?4.5:3}" fill="${o.c}"/>`});
+  });
+  $("chart").innerHTML=s;
+}
+
+document.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",render));
+$("reset").addEventListener("click",()=>{Object.entries(DEF).forEach(([k,val])=>{$(k).value=val});render()});
+render();
+})();
+</script>
+
+</body></html>
