@@ -95,7 +95,6 @@ footer{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padd
         <label for="precio">Precio contado ($)<input id="precio" type="number" step="1000" value="80000"></label>
         <label for="tc">Tipo de cambio ($ por €)<input id="tc" type="number" step="0.5" value="47"></label>
         <label for="fondo">Fondo de emergencia en enero (€)<input id="fondo" type="number" step="100" value="3000"></label>
-        <label for="rend">Rendimiento anual del fondo (%)<input id="rend" type="number" step="0.5" value="3"></label>
       </fieldset>
       <fieldset>
         <legend>Tarjeta de crédito</legend>
@@ -103,7 +102,6 @@ footer{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padd
         <label for="iva">IVA sobre intereses (%)<input id="iva" type="number" step="1" value="22"></label>
         <label for="seg">Seguro sobre saldo (% mensual)<input id="seg" type="number" step="0.05" value="0.25"></label>
         <label for="porcMin">Capital incluido en el mínimo (%)<input id="porcMin" type="number" step="1" min="0" max="100" value="10"></label>
-        <label for="pisoMin">Piso del pago mínimo ($)<input id="pisoMin" type="number" step="100" min="0" value="1500"></label>
         <label for="cancel">Cancela todo en<select id="cancel"></select></label>
       </fieldset>
       <fieldset>
@@ -114,7 +112,7 @@ footer{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padd
         <p class="note">La cuota incluye intereses, IVA sobre intereses, seguro de vida y gastos administrativos. La tienda informa solo la TEA sin IVA.</p>
       </fieldset>
     </div>
-    <p class="note" style="margin-top:14px">Supuestos docentes inspirados en un estado de cuenta real de una tarjeta uruguaya: si se financia la compra, los intereses se estiman desde el día de la compra con base 365; los intereses e impuestos se capitalizan mensualmente cuando quedan impagos. El mínimo se aproxima como intereses + IVA + seguro + 10 % del capital, con un piso configurable. Se omiten cuotas anteriores, mantenimiento y sobregiros. No es una liquidación bancaria exacta.</p>
+    <p class="note" style="margin-top:14px">Supuestos docentes inspirados en un estado de cuenta real de una tarjeta uruguaya: si se financia la compra, los intereses se estiman desde el día de la compra con base 365; los intereses e impuestos se capitalizan mensualmente cuando quedan impagos. El mínimo se aproxima como intereses + IVA + seguro + 10 % del capital, sin piso fijo. Se omiten cuotas anteriores, mantenimiento y sobregiros. No es una liquidación bancaria exacta.</p>
     <button class="reset" id="reset" type="button" style="margin-top:12px">Volver a los valores del caso</button>
   </details>
 
@@ -132,7 +130,7 @@ footer{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padd
         <h2 id="h-stmt">Tarjeta: qué dice cada estado de cuenta</h2>
         <div class="stmt-head" id="stmtHead"></div>
         <div class="tbl"><table id="tblCard"></table></div>
-        <p class="note" style="margin-top:10px">El mínimo estimado incluye intereses, IVA, seguro y una parte del capital. En julio se muestra el pago total para cancelar el saldo.</p>
+        <p class="note" style="margin-top:10px">El mínimo estimado incluye intereses, IVA, seguro y el 10 % del capital pendiente. En julio se muestra el pago total para cancelar el saldo.</p>
       </div>
       <div class="panel">
         <h2>Tienda: qué hay dentro de las cuotas</h2>
@@ -158,7 +156,7 @@ footer{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padd
 <script>
 (function(){
 const MESES=["Febrero","Marzo","Abril","Mayo","Junio","Julio"];
-const DEF={precio:80000,tc:47,fondo:3000,rend:3,tea:63.56,iva:22,seg:0.25,porcMin:10,pisoMin:1500,cancel:"5",cuota:8688,ncuotas:12,teaT:45};
+const DEF={precio:80000,tc:47,fondo:3000,tea:63.56,iva:22,seg:0.25,porcMin:10,cancel:"5",cuota:8688,ncuotas:12,teaT:45};
 const $=id=>document.getElementById(id);
 const sel=$("cancel");
 MESES.forEach((m,i)=>{const o=document.createElement("option");o.value=i;o.textContent=m+(i===0?" (pago total)":"");sel.appendChild(o)});
@@ -177,12 +175,12 @@ function irrMonthly(P,c,n){ // tasa mensual tal que P = c*(1-(1+r)^-n)/r
 }
 
 function compute(){
-  const P=v("precio"),TC=v("tc"),F0=v("fondo"),rend=v("rend")/100,tea=v("tea")/100,iva=v("iva")/100,seg=v("seg")/100,porcMin=v("porcMin")/100,pisoMin=v("pisoMin"),cancel=parseInt(sel.value,10),cuota=v("cuota"),n=Math.max(1,Math.round(v("ncuotas"))),teaT=v("teaT")/100;
+  const P=v("precio"),TC=v("tc"),F0=v("fondo"),tea=v("tea")/100,iva=v("iva")/100,seg=v("seg")/100,porcMin=v("porcMin")/100,cancel=parseInt(sel.value,10),cuota=v("cuota"),n=Math.max(1,Math.round(v("ncuotas"))),teaT=v("teaT")/100;
   const compra=new Date(2027,0,5);
   const venc=MESES.map((_,i)=>new Date(2027,i+1,7));
 
   // Tarjeta: interés efectivo por tramo de días; liquidación y eventual capitalización mensual.
-  // Pago mínimo docente: intereses + IVA + seguro + 10% del capital, con piso.
+  // Pago mínimo docente: intereses + IVA + seguro + 10% del capital, sin piso fijo.
   // Se supone una única compra, sin consumos nuevos ni cuotas preexistentes.
   let bal=P,last=compra,rows=[],TI=0,TV=0,TS=0,paid=0;
   for(let i=0;i<=cancel;i++){
@@ -193,7 +191,7 @@ function compute(){
     const seguro=cancel===0?0:capital*seg;
     const cargos=it+iv+seguro;
     const totalExigible=capital+cargos;
-    const minimo=cancel===0?totalExigible:Math.min(totalExigible,Math.max(pisoMin,cargos+capital*porcMin));
+    const minimo=cancel===0?totalExigible:Math.min(totalExigible,cargos+capital*porcMin);
     const pay=i===cancel?totalExigible:minimo;
     const amortizacion=Math.max(0,pay-cargos);
     bal=Math.max(0,totalExigible-pay);
@@ -214,11 +212,11 @@ function compute(){
   const storePays=MESES.map((_,i)=>i<n?cuota:0);
   const storeAfter=Math.max(0,n-5)*cuota; // desde julio (incluido)
 
-  // Fondo (ene..jun) y rendimiento perdido hasta julio
+  // Fondo (ene..jun): sin rendimientos, solo salidas de efectivo
   function fondoPath(pays){ // pays feb..jul en $
-    const path=[F0];let f=F0,lost=0;
-    for(let i=0;i<5;i++){const e=pays[i]/TC;f-=e;path.push(f);lost+=e*(Math.pow(1+rend,(5-i)/12)-1)}
-    return {path,lost,fromSalary:pays[5]};
+    const path=[F0];let f=F0;
+    for(let i=0;i<5;i++){const e=pays[i]/TC;f-=e;path.push(f)}
+    return {path,fromSalary:pays[5]};
   }
   const cashPays=[P,0,0,0,0,0];
   const C=fondoPath(cashPays),T=fondoPath(cardPays),S=fondoPath(storePays);
@@ -243,7 +241,6 @@ function render(){
       <dl>
         <dt>Costo extra sobre el contado</dt><dd>${pesos(o.extra)}</dd>${parts}
         <dt>Costo extra en euros</dt><dd>${eur(o.extra/R.TC)}</dd>
-        <dt>Rendimiento que deja de ganar el fondo</dt><dd>${eur(o.F.lost)}</dd>
         <dt><b>Fondo disponible en junio</b></dt><dd><b>${eur(o.F.path[5])}</b></dd>
         <dt>Pendiente al volver a cobrar</dt><dd>${o.afterTxt}</dd>
       </dl>
